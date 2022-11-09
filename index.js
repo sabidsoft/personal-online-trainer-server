@@ -69,6 +69,19 @@ const run = async () => {
             const review = await reviewsCollection.findOne(query)
             res.send(review)
         })
+
+        app.patch('/edit-review', async(req, res) => {
+            const id = req.query.id
+            const query = { _id: ObjectId(id) }
+            const review = req.body.textareaReview
+            const updateDocument = {
+                $set: {
+                    reviewer_review: review
+                }
+            }
+            const result = await reviewsCollection.updateOne(query, updateDocument)
+            res.send(result)
+        })
     }
     finally{}
 }
