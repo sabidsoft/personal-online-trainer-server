@@ -19,9 +19,16 @@ const run = async () => {
     try{
         const servicesCollection = client.db('personal_online_trainer').collection('services')
 
+        app.get('/services-home', async(req, res) => {
+            const query = {}
+            const cursor = servicesCollection.find(query).sort({ '_id': -1 }).limit(3)
+            const services = await cursor.toArray()
+            res.send(services)
+        })
+
         app.get('/services', async(req, res) => {
             const query = {}
-            const cursor = servicesCollection.find(query)
+            const cursor = servicesCollection.find(query).sort({ '_id': -1 })
             const services = await cursor.toArray()
             res.send(services)
         })
