@@ -18,6 +18,7 @@ app.use(express.json())
 const run = async () => {
     try{
         const servicesCollection = client.db('personal_online_trainer').collection('services')
+        const reviewsCollection = client.db('personal_online_trainer').collection('reviews')
 
         app.get('/services-home', async(req, res) => {
             const query = {}
@@ -38,6 +39,12 @@ const run = async () => {
             const query = { _id: ObjectId(id) }
             const service = await servicesCollection.findOne(query)
             res.send(service)
+        })
+
+        app.post('/reviews', async(req, res) => {
+            const reviewInfo = req.body
+            const result = await reviewsCollection.insertOne(reviewInfo)
+            res.send(result)
         })
     }
     finally{}
