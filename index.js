@@ -54,6 +54,21 @@ const run = async () => {
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
+
+        app.get('/my-reviews', async(req, res) => {
+            const email = req.query.email
+            const query = { reviewer_email: email }
+            const cursor = reviewsCollection.find(query).sort({ '_id': -1 })
+            const reviews = await cursor.toArray()
+            res.send(reviews)
+        })
+
+        app.get('/edit-review', async(req, res) => {
+            const id = req.query.id
+            const query = { _id: ObjectId(id) }
+            const review = await reviewsCollection.findOne(query)
+            res.send(review)
+        })
     }
     finally{}
 }
