@@ -89,6 +89,12 @@ const run = async () => {
             const result = await reviewsCollection.deleteOne(query)
             res.send(result)
         })
+
+        app.post('/add-service', async (req, res) => {
+            const service = req.body
+            const result = await servicesCollection.insertOne(service)
+            res.send(result)
+        })
     }
     finally{}
 }
