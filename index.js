@@ -2,6 +2,7 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 
 // variables
@@ -14,11 +15,32 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 app.use(cors())
 app.use(express.json())
 
-// function for API
+// jwt middleware
+const verifyJWT = (req, res, next) => {
+    if (!req.headers.authorization) {
+        return res.status(401).send({ success: false, message: 'unauthorized access!' })
+    }
+    const token = req.headers.authorization.split(' ')[1]
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ success: false, message: 'unauthorized access!' })
+        }
+        req.decoded = decoded
+        next()
+    })
+}
+
+// API
 const run = async () => {
     try{
         const servicesCollection = client.db('personal_online_trainer').collection('services')
         const reviewsCollection = client.db('personal_online_trainer').collection('reviews')
+
+        app.post('/jwt', (req, res) => {
+            const userEmail = req.body
+            const token = jwt.sign(userEmail, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
+            res.send({ token: token })
+        })
 
         app.get('/services-home', async(req, res) => {
             const query = {}
@@ -55,9 +77,9 @@ const run = async () => {
             res.send(reviews)
         })
 
-        app.get('/my-reviews', async(req, res) => {
-            const email = req.query.email
-            const query = { reviewer_email: email }
+        app.get('/my-reviews', verifyJWT, async(req, res) => {
+            const queryEmail = req.query.email
+            const query = { reviewer_email: queryEmail }
             const cursor = reviewsCollection.find(query).sort({ '_id': -1 })
             const reviews = await cursor.toArray()
             res.send(reviews)
