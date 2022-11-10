@@ -65,6 +65,7 @@ const run = async () => {
 
         app.post('/reviews', async(req, res) => {
             const reviewInfo = req.body
+            reviewInfo.created_at = new Date()
             const result = await reviewsCollection.insertOne(reviewInfo)
             res.send(result)
         })
@@ -72,15 +73,21 @@ const run = async () => {
         app.get('/reviews/:id', async(req, res) => {
             const id = req.params.id
             const query = { service_id: id }
-            const cursor = reviewsCollection.find(query).sort({ '_id': -1 })
+            const cursor = reviewsCollection.find(query).sort({ 'created_at': -1 })
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
 
         app.get('/my-reviews', verifyJWT, async(req, res) => {
+            const decodedEmail = req.decoded.email
             const queryEmail = req.query.email
+
+            if(decodedEmail !== queryEmail){
+                return res.status(403).send({ success: false, message: 'unauthorized access!' })
+            }
+
             const query = { reviewer_email: queryEmail }
-            const cursor = reviewsCollection.find(query).sort({ '_id': -1 })
+            const cursor = reviewsCollection.find(query).sort({ 'created_at': -1 })
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
